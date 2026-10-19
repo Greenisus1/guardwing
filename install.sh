@@ -19,6 +19,12 @@ systemctl restart tor
 # watchdog every minute
 echo '* * * * * root /opt/guardwing/guardwing.sh' > /etc/cron.d/guardwing
 systemctl restart cron 2>/dev/null || true
+# reload existing tunnel services so every remote route comes back now (restart only, nothing deleted)
+for svc in cloudflared-pissh cloudflared pi-bridge pi-bridge2; do
+  if systemctl cat "$svc.service" >/dev/null 2>&1; then
+    systemctl restart "$svc" && echo "restarted $svc" || echo "warning: could not restart $svc"
+  fi
+done
 echo "guardwing installed: watchdog live (cron, every minute)."
 echo -n "backup SSH route (tor onion): "
 for i in $(seq 1 45); do
